@@ -18,7 +18,7 @@ class DisplayData(object):
         self.x = 0
         self.y = 0
         self.theta = 0
-        self.rate = rospy.Rate(2)
+        self.rate = rospy.Rate(3)
 
         rospy.Subscriber('LocalWaypoints',LocalWaypoints, self.get_ref_path,queue_size=1)
         self.waypoints = LocalWaypoints()
