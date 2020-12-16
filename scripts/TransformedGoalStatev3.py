@@ -70,75 +70,80 @@ class TransGoalStateClass(object):
             self.pub.publish(self.goal_state)
             self.rate.sleep()
 
+    def main(self):
+        goal_state_set = self.calc_trans_rot(self.globwaypoints, self.goalIndex, self.x, self.y, self.theta, self.num_paths, self.path_offset)
+        self.trans_into_glob_frame(goal_state_set,self.theta, self.x, self.y)
         
-    def calculate_heading_angle(self):
-        ## CALCULATES HEADING ANGLE OF THE GOAL POINT
-        if self.goalIndex == len(self.globwaypoints.globwaypointsx):
-            self.goalIndex = self.goalIndex-1
-            delta_x = (self.globwaypoints.globwaypointsx[self.goalIndex+1])-(self.globwaypoints.globwaypointsx[self.goalIndex])
-            delta_y = (self.globwaypoints.globwaypointsy[self.goalIndex+1])-(self.globwaypoints.globwaypointsy[self.goalIndex])
-        else:
-            delta_x = (self.globwaypoints.globwaypointsx[self.goalIndex+1])-(self.globwaypoints.globwaypointsx[self.goalIndex])
-            delta_y = (self.globwaypoints.globwaypointsy[self.goalIndex+1])-(self.globwaypoints.globwaypointsy[self.goalIndex])
-        
-        #print("delta_y:",delta_y)
-        try:
-            angle = math.atan((delta_y)/(delta_x))
-        except ZeroDivisionError:
-            angle = (math.pi)/(2) 
-        return angle
-
-    def calc_trans_rot(self):
+    def calc_trans_rot(self,globwaypoints, goalIndex, x, y, theta, num_paths, path_offset):
         """TRANSLATION AND ROTATION TO HAVE GOAL_STATE_SET W.R.T VEHICLE FRAME"""
-        
-        goal_state_localX = self.globwaypoints.globwaypointsx[self.goalIndex]-self.x
-        goal_state_localY = self.globwaypoints.globwaypointsy[self.goalIndex]-self.y
-        theta = -self.theta
+        goal_state_set = np.zeros((num_paths,3))
+        goal_state_localX = globwaypoints.globwaypointsx[goalIndex]-x
+        goal_state_localY = globwaypoints.globwaypointsy[goalIndex]-y
+        theta = -theta
         goal_x = (math.cos(theta))*(goal_state_localX)-(math.sin(theta))*(goal_state_localY)
         goal_y = (math.cos(theta))*(goal_state_localY)+(math.sin(theta))*(goal_state_localX)
-        self.heading = self.calculate_heading_angle()
+        self.heading = self.calculate_heading_angle(globwaypoints,goalIndex)
         goal_t = self.heading-self.theta
 
         if goal_t > math.pi :
             goal_t = goal_t - (2)*(math.pi)
         if goal_t < -math.pi :
             goal_t = goal_t + (2)*(math.pi)
-
-        for i in range(self.num_paths):
-            offset = (i-round(self.num_paths/2))*(self.path_offset)
+        print("goal_t in calc_trans_rot",goal_t)
+        for i in range(num_paths):
+            offset = (i-round(num_paths/2))*(path_offset)
             x_offset = (offset)*(math.cos(goal_t+math.pi/2))
             y_offset = (offset)*(math.sin(goal_t+math.pi/2))
             
-            self.goal_state_set[i,:] = [goal_x+x_offset, goal_y+y_offset,goal_t]
-        self.goal_state.x = self.x
-        self.goal_state.y = self.y
-        self.goal_state.goal_state_vehicle_framex = self.goal_state_set[:,0]
-        self.goal_state.goal_state_vehicle_framey = self.goal_state_set[:,1]
-        self.goal_state.goal_state_vehicle_frametheta = self.goal_state_set[:,2]
+            goal_state_set[i,:] = [goal_x+x_offset, goal_y+y_offset,goal_t]
+        self.goal_state.x = x
+        self.goal_state.y = y
+        self.goal_state.goal_state_vehicle_framex = goal_state_set[:,0]
+        self.goal_state.goal_state_vehicle_framey = goal_state_set[:,1]
+        self.goal_state.goal_state_vehicle_frametheta = goal_state_set[:,2]
+        return goal_state_set
+        
+    def calculate_heading_angle(self, globwaypoints, goalIndex):
+        """ CALCULTES HEADING ANGLE OF THE GOAL POINT IN GLOBAL FRAME
 
-    def main(self):
-        self.calc_trans_rot()
-        self.trans_into_glob_frame()
+            """
+        if goalIndex == len(globwaypoints.globwaypointsx):
+            goalIndex = goalIndex-1
+            delta_x = (globwaypoints.globwaypointsx[goalIndex+1])-(globwaypoints.globwaypointsx[goalIndex])
+            delta_y = (globwaypoints.globwaypointsy[goalIndex+1])-(globwaypoints.globwaypointsy[goalIndex])
+        else:
+            delta_x = (globwaypoints.globwaypointsx[goalIndex+1])-(globwaypoints.globwaypointsx[goalIndex])
+            delta_y = (globwaypoints.globwaypointsy[goalIndex+1])-(globwaypoints.globwaypointsy[goalIndex])
+        
+        #print("delta_y:",delta_y)
+        try:
+            heading = math.atan((delta_y)/(delta_x))
+        except ZeroDivisionError:
+            heading = (math.pi)/(2) 
+        return heading
 
-    def trans_into_glob_frame(self):
+
+
+    def trans_into_glob_frame(self,goal_state_set, theta, x, y):
         """TRANSLATION AND ROTATION TO HAVE GOAL_STATE_SET W.R.T GLOBAL FRAME
             TRANSFORMS FROM VEHICLE FRAME INTO GLOBAL FRAME
         """
         ## TRANSFORMS INTO GLOBAL FRAME
-        x1 = np.array(self.goal_state_set[:,0])
-        y1 = np.array(self.goal_state_set[:,1])
-        goal_state_set_heading = self.goal_state_set[:,2]
-        x2 = (math.cos(self.theta))*(x1)-(math.sin(self.theta))*(y1)
-        y2 = (math.cos(self.theta))*(y1)+(math.sin(self.theta))*(x1)
-        x2 =self.x + x2
-        y2 = self.y + y2
-        self.goal_state.theta = self.theta
-        self.heading = goal_state_set_heading+self.theta
+        x1 = np.array(goal_state_set[:,0])
+        y1 = np.array(goal_state_set[:,1])
+        goal_state_set_heading = goal_state_set[:,2]
+        x2 = (math.cos(theta))*(x1)-(math.sin(theta))*(y1)
+        y2 = (math.cos(theta))*(y1)+(math.sin(theta))*(x1)
+        x2 =x + x2
+        y2 = y + y2
+        self.goal_state.theta = theta
+        self.heading = goal_state_set_heading+theta
         transformed_goal_state = np.dstack((x2,y2,self.heading),)
         transformed_goal_state = transformed_goal_state[0,:,:]
         self.goal_state.goal_state_global_framex = transformed_goal_state[:,0]
         self.goal_state.goal_state_global_framey = transformed_goal_state[:,1]
         self.goal_state.goal_state_global_frametheta = transformed_goal_state[:,2]
+        
 
 
 if __name__ == "__main__":
