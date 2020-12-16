@@ -23,7 +23,7 @@ class goalStateClass(object):
         self.goalIndex = GoalIndex()
         self.lookahead = 0.6
         self.longVel = 0
-        self.rate =rospy.Rate(10)
+        self.rate =rospy.Rate(4)
 
     def  get_states(self,msg):
         self.x = msg.pose.pose.position.x
