@@ -131,7 +131,7 @@ class goalStateClass(object):
         if self.longVel < 0.2:
             self.lookahead = 0.6
         else:
-            self.lookahead = (self.longVel)*(3)
+            self.lookahead = (self.longVel)*(3.5)
 
     def main(self):
         """ Returns goalindex"""
