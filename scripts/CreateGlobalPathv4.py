@@ -19,7 +19,7 @@ class GlobalPath(object):
         rospy.Subscriber('odom',Odometry,self.get_states,queue_size=10)
         self.x = 0
         self.y = 0
-        self.rate = rospy.Rate(5)
+        self.rate = rospy.Rate(4)
         self.waypoints = GlobWaypoints()
 
     def get_states(self,msg):
