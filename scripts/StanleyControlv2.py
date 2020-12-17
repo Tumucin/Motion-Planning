@@ -248,7 +248,7 @@ class FindCoeffClass(object):
         #print("Total Steering:",self.totalSteering)
         self.prevx = self.x
         self.prevy = self.y
-        self.rate.sleep()
+        #self.rate.sleep()
 
 
 
