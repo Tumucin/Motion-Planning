@@ -31,14 +31,15 @@ class FindCoeffClass(object):
 
         self.rate = rospy.Rate(100)
 
-        rospy.Subscriber('odom',Odometry,self.get_states,queue_size=10)
+        rospy.Subscriber('odom',Odometry,self.get_states,queue_size=1)
 
-        rospy.Subscriber('LocalWaypoints',LocalWaypoints, self.get_ref_path,queue_size=10)
 
-        rospy.Subscriber('cmd_vel',Twist,self.get_long_vel,queue_size=10)
+        rospy.Subscriber('LocalWaypoints',LocalWaypoints, self.get_ref_path,queue_size=1)
 
-        self.pub = rospy.Publisher('angular_velocity',AngularVelocity,queue_size=10)
-        self.pub2=rospy.Publisher('CrossTrackError',CrossTrackError,queue_size=10)
+        rospy.Subscriber('cmd_vel',Twist,self.get_long_vel,queue_size=1)
+
+        self.pub = rospy.Publisher('angular_velocity',AngularVelocity,queue_size=1)
+        self.pub2=rospy.Publisher('CrossTrackError',CrossTrackError,queue_size=1)
 
 
     def get_states(self,msg):
@@ -50,8 +51,22 @@ class FindCoeffClass(object):
         (_, _, yaw) = euler_from_quaternion(orientation_list)
 
         self.theta = yaw 
-        self.angularVel = self.calculate_angular_velocity(self.waypoints)
-        self.pub.publish(self.angularVel)
+        print("Time in get_states:", rospy.get_time())
+        
+        #self.rate.sleep()
+    def main(self):
+        data = None
+        while data is None:
+            try:
+                data = rospy.wait_for_message('LocalWaypoints',LocalWaypoints)
+            except:
+                pass
+
+        while not rospy.is_shutdown():
+            self.angularVel.LineHeadingError,self.angularVel.headingErr,self.angularVel.angularVelocity = self.calculate_angular_velocity(self.waypoints)
+            self.pub.publish(self.angularVel)
+            print("Time:",rospy.get_time())
+            self.rate.sleep()
 
     def get_long_vel(self,msg):
         self.longVel = msg.linear.x
@@ -212,24 +227,29 @@ class FindCoeffClass(object):
         #print("e:",e)
 
         if self.longVel > 0.01:
-            crossTrackSteer = math.atan(((self.controlGain)*(e))/(self.wheelVel))
+            crossTrackSteer = math.atan(((self.controlGain)*(e))/(self.wheelVel+1))
         else:
             crossTrackSteer = 0
         
         self.totalSteering = headingErr+ crossTrackSteer
 
-        if self.totalSteering > 0.5:
-            self.totalSteering = 0.5
+        if self.totalSteering > 0.4:
+            self.totalSteering = 0.4
 
-        if self.totalSteering < -0.5:
-            self.totalSteering = -0.5
+        if self.totalSteering < -0.4:
+            self.totalSteering = -0.4
         print("Total steering:",self.totalSteering)
         self.crosstrackerr.e=e
         self.pub2.publish(self.crosstrackerr.e)
         self.prevx = self.x
         self.prevy = self.y
         angularVel = ((self.longVel)*(math.tan(self.totalSteering)))/(self.L)
-        return angularVel
+        print("LineHeading in stanley:",LineHeadingError)
+        print("headingErr in stanley:",headingErr)
+        print("totalSteering in stanley:",self.totalSteering)
+        print("e in stanley:",e)
+        print("wheelvel in stanley",self.wheelVel)
+        return LineHeadingError, headingErr, angularVel
 
 
 
@@ -244,7 +264,7 @@ class FindCoeffClass(object):
         
 
     def loop(self):
-        rospy.spin()
+        self.main()
 
 
 

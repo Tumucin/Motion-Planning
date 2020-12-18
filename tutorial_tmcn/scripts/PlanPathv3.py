@@ -13,9 +13,9 @@ from tf.transformations import euler_from_quaternion
 class PlanPath(object):
 
     def __init__(self):
-        rospy.Subscriber('odom',Odometry,self.get_states,queue_size=10)
-        rospy.Subscriber('GoalIndexTopic',GoalIndex,self.get_goal_index,queue_size=10)
-        rospy.Subscriber('GlobalPath',GlobWaypoints,self.get_glob_path,queue_size=10)
+        rospy.Subscriber('odom',Odometry,self.get_states,queue_size=1)
+        rospy.Subscriber('GoalIndexTopic',GoalIndex,self.get_goal_index,queue_size=1)
+        rospy.Subscriber('GlobalPath',GlobWaypoints,self.get_glob_path,queue_size=1)
         rospy.Subscriber('TransGoalStatesTopic',TransformedGoalStates,self.get_trans_goal_states,queue_size=1)
 
         self.x = 0
@@ -25,12 +25,12 @@ class PlanPath(object):
         self.globwaypoints = GlobWaypoints()
         self.transformed_goal_state = TransformedGoalStates()
         self.NumberofWaypoints = 2600
-        self.CenterX = 5
+        self.CenterX = 4
         self.CenterY = 0.25
-        self.Radius = 0.1
+        self.Radius = 0.35
         self.rate = rospy.Rate(7)
         self.localWaypoints = LocalWaypoints()
-        self.pub = rospy.Publisher('LocalWaypoints',LocalWaypoints,queue_size=10)
+        self.pub = rospy.Publisher('LocalWaypoints',LocalWaypoints,queue_size=1)
 
     def get_states(self,msg):
         self.x = msg.pose.pose.position.x
@@ -251,9 +251,9 @@ class PlanPath(object):
                 DistanceCenter[0,i,j] = math.sqrt(pow(LocalWaypointsX22[0,i,j]-self.CenterX,2)+pow(LocalWaypointsY22[0,i,j]-self.CenterY,2))
                 DistanceGoal[0,i,j] = math.sqrt(pow(LocalWaypointsX22[0,i,j]-(transformed_goal_state.goal_state_vehicle_framex[int(round((len(theta)-1))/(2))]),2)+pow(LocalWaypointsY22[0,i,j]-(transformed_goal_state.goal_state_vehicle_framey[int(round((len(theta)-1))/(2))]),2))
 
-        DistanceGoal[:,:,0] = (DistanceGoal[:,:,0])*(1.7)
-        DistanceGoal[:,:,1] = (DistanceGoal[:,:,1])*(1.6)
-        DistanceGoal[:,:,2] = (DistanceGoal[:,:,2])*(1.5)
+        DistanceGoal[:,:,0] = (DistanceGoal[:,:,0])*(4)
+        DistanceGoal[:,:,1] = (DistanceGoal[:,:,1])*(3)
+        DistanceGoal[:,:,2] = (DistanceGoal[:,:,2])*(2)
         DistanceGoal[:,:,3] = (DistanceGoal[:,:,3])*(0.5)
         DistanceGoal[:,:,4] = (DistanceGoal[:,:,4])*(1.2)
         DistanceGoal[:,:,5] = (DistanceGoal[:,:,5])*(1.3)

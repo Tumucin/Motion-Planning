@@ -15,11 +15,11 @@ class GlobalPath(object):
         self.ypoints = [0.25 ,0.25 ,0.2633 ,0.2928 ,0.3618 ,0.4935 ,0.6264 ,0.7998 ,0.906 ,0.967 ,1 ,9 ,9.218 ,9.384 ,9.52 ,9.615 ,9.704 ,9.75 ,9.75 ,9.743 ,9.72 ,9.692 ,9.633 ,9.52 ,9.361 ,9 ,0.25]
         self.numOfWaypoints = 100
 
-        self.pub = rospy.Publisher('GlobalPath',GlobWaypoints,queue_size=10) # Publishes to GlobalPath
-        rospy.Subscriber('odom',Odometry,self.get_states,queue_size=10)
+        self.pub = rospy.Publisher('GlobalPath',GlobWaypoints,queue_size=1) # Publishes to GlobalPath
+        rospy.Subscriber('odom',Odometry,self.get_states,queue_size=1)
         self.x = 0
         self.y = 0
-        self.rate = rospy.Rate(4)
+        self.rate = rospy.Rate(7)
         self.waypoints = GlobWaypoints()
 
     def get_states(self,msg):

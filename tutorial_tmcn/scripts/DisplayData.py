@@ -8,7 +8,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Twist
-from tutorial_tmcn.msg import GlobWaypoints,GoalIndex,TransformedGoalStates,LocalWaypoints
+from tutorial_tmcn.msg import GlobWaypoints,GoalIndex,TransformedGoalStates,LocalWaypoints,AngularVelocity
 from tf.transformations import euler_from_quaternion
 
 class DisplayData(object):
@@ -21,15 +21,31 @@ class DisplayData(object):
         self.rate = rospy.Rate(3)
 
         rospy.Subscriber('LocalWaypoints',LocalWaypoints, self.get_ref_path,queue_size=1)
+        rospy.Subscriber('angular_velocity',AngularVelocity,self.get_angular_vel,queue_size=1)
         self.waypoints = LocalWaypoints()
-        rospy.Subscriber('GlobalPath',GlobWaypoints,self.get_glob_path,queue_size=10)
+        rospy.Subscriber('GlobalPath',GlobWaypoints,self.get_glob_path,queue_size=1)
         self.globwaypoints = GlobWaypoints()
-
+        self.angularVelocity = []
+        self.LineHeadingError = []
+        self.headingErr = []
+        self.time = []
+        self.xhistory = []
+        self.yhistory = []
+        
         rospy.Subscriber('TransGoalStatesTopic',TransformedGoalStates,self.get_trans_goal_states,queue_size=1)
         self.transformed_goal_state = TransformedGoalStates()
 
         self.derivtheta = 0
         self.prevglobaltheta = 0
+
+    def get_angular_vel(self,msg):
+        x = msg.angularVelocity
+        delta = math.atan(((x)*(0.106))/(0.5))
+        self.angularVelocity.append(delta)
+        self.LineHeadingError.append(msg.LineHeadingError)
+        self.headingErr.append(msg.headingErr)
+        time =rospy.get_time()
+        self.time.append(time)
 
     def get_glob_path(self,msg):
         self.globwaypoints.globwaypointsx = msg.globwaypointsx
@@ -44,10 +60,12 @@ class DisplayData(object):
 
         self.x = msg.pose.pose.position.x
         self.y = msg.pose.pose.position.y
+        self.xhistory.append(self.x)
+        self.yhistory.append(self.y)
 
         orientation_q = msg.pose.pose.orientation
         orientation_list = [orientation_q.x, orientation_q.y, orientation_q.z, orientation_q.w]
-        (roll, pitch, yaw) = euler_from_quaternion(orientation_list)
+        (_, _, yaw) = euler_from_quaternion(orientation_list)
 
         self.theta = yaw
 
@@ -62,6 +80,7 @@ class DisplayData(object):
 
     def drawLine(self):
         try:
+            plt.figure(1)
             plt.plot(self.x,self.y,'o-',label= 'CurrentPosition')
             plt.plot(self.waypoints.localwaypointsx,self.waypoints.localwaypointsy,label='LocalPath')
             for i in range(7):
@@ -69,11 +88,25 @@ class DisplayData(object):
             
             plt.plot(self.x,self.derivtheta,'o-',label='DerivativeTheta')
             plt.plot(self.globwaypoints.globwaypointsx,self.globwaypoints.globwaypointsy,label='GlobalPath')
-            plt.legend()
-            plt.grid()
+            plt.plot(self.xhistory, self.yhistory, label = "ActualPath")
             plt.xlim(0,10)
             plt.ylim(0,10)
+            plt.legend()
+            plt.grid()
             plt.show()
+            """plt.figure(2)
+            plt.plot(self.time,self.angularVelocity, label= 'TotalSteering')
+            plt.legend()
+            plt.grid()
+            plt.figure(3)
+            plt.plot(self.time, self.LineHeadingError,label= 'LineHeading')
+            plt.legend()
+            plt.grid()
+            plt.figure(4)
+            plt.plot(self.time, self.headingErr, label= 'HeadingError')
+            plt.legend()
+            plt.grid()
+            #plt.show()"""
             self.prevglobaltheta = self.transformed_goal_state.goal_state_global_frametheta[0]
         except IndexError:
             pass

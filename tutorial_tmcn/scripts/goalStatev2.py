@@ -12,10 +12,10 @@ from tf.transformations import euler_from_quaternion
 class goalStateClass(object):
 
     def __init__(self):  
-        self.pub = rospy.Publisher('GoalIndexTopic',GoalIndex,queue_size=10)
-        rospy.Subscriber('odom',Odometry,self.get_states,queue_size=10)
-        rospy.Subscriber('GlobalPath',GlobWaypoints,self.get_glob_path,queue_size=10)
-        rospy.Subscriber('cmd_vel',Twist,self.get_long_vel,queue_size=10)
+        self.pub = rospy.Publisher('GoalIndexTopic',GoalIndex,queue_size=1)
+        rospy.Subscriber('odom',Odometry,self.get_states,queue_size=1)
+        rospy.Subscriber('GlobalPath',GlobWaypoints,self.get_glob_path,queue_size=1)
+        rospy.Subscriber('cmd_vel',Twist,self.get_long_vel,queue_size=1)
         self.x = 0
         self.y = 0
         self.theta = 0
@@ -23,7 +23,7 @@ class goalStateClass(object):
         self.goalIndex = GoalIndex()
         self.lookahead = 0.6
         self.longVel = 0
-        self.rate =rospy.Rate(4)
+        self.rate =rospy.Rate(7)
 
     def  get_states(self,msg):
         self.x = msg.pose.pose.position.x
@@ -128,10 +128,10 @@ class goalStateClass(object):
     def update_lookahead(self):
         """ Updates lookahead distance"""
 
-        if self.longVel < 0.2:
+        if self.longVel < 0.3:
             self.lookahead = 0.6
         else:
-            self.lookahead = (self.longVel)*(3.5)
+            self.lookahead = (self.longVel)*(6)
 
     def main(self):
         """ Returns goalindex"""
