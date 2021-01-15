@@ -24,10 +24,11 @@ class PlanPath(object):
         self.goalIndex = GoalIndex()
         self.globwaypoints = GlobWaypoints()
         self.transformed_goal_state = TransformedGoalStates()
-        self.NumberofWaypoints = 2600
+        self.NumberofWaypoints = 900
         self.CenterX = 4
         self.CenterY = 0.25
-        self.Radius = 0.35
+        #self.Radius = 0.35
+        self.Radius = 0
         self.rate = rospy.Rate(7)
         self.localWaypoints = LocalWaypoints()
         self.pub = rospy.Publisher('LocalWaypoints',LocalWaypoints,queue_size=1)

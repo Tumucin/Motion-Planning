@@ -55,7 +55,8 @@ class setVelClass(object):
         print("constant in get_angular_vel",constant)
         
         if  constant > 0.01:
-            self.long_vel = self.long_vel-0.05
+            #self.long_vel = self.long_vel-0.05
+            self.long_vel = 0.25
             if self.long_vel < 0.19:
                 self.long_vel = 0.2
         else:
