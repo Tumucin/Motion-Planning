@@ -15,8 +15,12 @@ class DisplayData(object):
 
     def __init__(self):
         rospy.Subscriber('odom',Odometry,self.get_states,queue_size=1)
-        self.xpoints = [0.25 ,9 ,9.75 ,9.75 ,9 ,1 ,0.25 ,0.25]
-        self.ypoints = [0.25 ,0.25 ,1 ,9 ,9.75 ,9.75 ,9 ,0.25]
+        self.xpoints = [0.25 ,9 ,9.141 ,9.25 ,9.394 ,9.553 ,9.65 ,9.723 ,9.744 ,9.749 ,9.75 ,9.75 ,9.718 ,9.638 ,9.54 ,9.429 ,9.258 ,9 ,1 ,0.9013 ,0.7908 ,0.7108 ,0.5981 ,0.4598 ,0.3428 ,0.25 ,0.25]
+        self.ypoints = [0.25 ,0.25 ,0.2633 ,0.2928 ,0.3618 ,0.4935 ,0.6264 ,0.7998 ,0.906 ,0.967 ,1 ,9 ,9.218 ,9.384 ,9.52 ,9.615 ,9.704 ,9.75 ,9.75 ,9.743 ,9.72 ,9.692 ,9.633 ,9.52 ,9.361 ,9 ,0.25]
+        #self.xpoints = [0.25 ,9 ,9.553 ,9.75 ,9.75 ,9.54 ,9 ,1 ,0.4598 ,0.25 ,0.25]
+        #self.ypoints = [0.25 ,0.25 ,0.4935 ,1 ,9 ,9.52 ,9.75 ,9.75 ,9.52 ,9 ,0.25]
+        #self.xpoints = [0.25 ,9 ,9.75 ,9.75 ,9 ,1 ,0.25 ,0.25]
+        #self.ypoints = [0.25 ,0.25 ,1 ,9 ,9.75 ,9.75 ,9 ,0.25]
         #self.xpoints = [0.25 ,9 ,9.75 ,9.75 ,9 ,6 ,5.75 ,5.75]
         #self.ypoints = [0.25 ,0.25 ,1 ,3 ,3.75 ,3.75 ,4.25 ,9]
         self.x = 0
@@ -90,18 +94,19 @@ class DisplayData(object):
             x2 = r*np.sin(theta) +0.25
             plt.figure(1)
             plt.plot()
-            plt.plot(self.x,self.y,'o-',label= 'CurrentPosition')
+            plt.plot(self.globwaypoints.globwaypointsx,self.globwaypoints.globwaypointsy,'k',label='GlobalPath',linewidth=4)
+            plt.plot(self.waypoints.localwaypointsx,self.waypoints.localwaypointsy,'y',label='LocalPath', linewidth=4)
+            plt.plot(self.x,self.y,'bo',label= 'CurrentPosition')
             plt.plot(x1,x2,label= 'Obstacle')
-            plt.plot(self.waypoints.localwaypointsx,self.waypoints.localwaypointsy,label='LocalPath')
-            for i in range(7):
-                plt.plot(self.transformed_goal_state.goal_state_global_framex[i],self.transformed_goal_state.goal_state_global_framey[i],'o-')
+            
+            #for i in range(7):
+            plt.plot(self.transformed_goal_state.goal_state_global_framex,self.transformed_goal_state.goal_state_global_framey,'go',label='GoalStates')
             
             #plt.plot(self.x,self.derivtheta,'o-',label='DerivativeTheta')
-            plt.plot(self.xpoints, self.ypoints, 'o-', label = 'Waypoints')
-            plt.plot(self.globwaypoints.globwaypointsx,self.globwaypoints.globwaypointsy,label='GlobalPath')
-            plt.plot(self.xhistory, self.yhistory, label = "ActualPath")
+            plt.plot(self.xpoints, self.ypoints, 'ro', label = 'Waypoints')
+            plt.plot(self.xhistory, self.yhistory,'m', label = "ActualPath", linewidth=2.5)
             plt.xlim(0,10)
-            plt.ylim(-3,10)
+            plt.ylim(-3,12)
             plt.legend()
             plt.grid()
             plt.show()

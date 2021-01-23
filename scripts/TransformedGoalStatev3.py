@@ -22,9 +22,9 @@ from tf.transformations import euler_from_quaternion
 class TransGoalStateClass(object):
 
     def __init__(self):
-        rospy.Subscriber('GoalIndexTopic',GoalIndex,self.get_goal_index,queue_size=10)
-        rospy.Subscriber('GlobalPath',GlobWaypoints,self.get_glob_path,queue_size=10)
-        rospy.Subscriber('odom',Odometry,self.get_states,queue_size=10)
+        rospy.Subscriber('GoalIndexTopic',GoalIndex,self.get_goal_index,queue_size=1)
+        rospy.Subscriber('GlobalPath',GlobWaypoints,self.get_glob_path,queue_size=1)
+        rospy.Subscriber('odom',Odometry,self.get_states,queue_size=1)
         self.pub =rospy.Publisher('TransGoalStatesTopic',TransformedGoalStates,queue_size=1)
         
         self.globwaypoints = GlobWaypoints()
@@ -34,9 +34,9 @@ class TransGoalStateClass(object):
         self.num_paths = 7
         self.goal_state_set = np.zeros((self.num_paths,3))
         self.goal_state = TransformedGoalStates()
-        self.path_offset = 0.4
+        self.path_offset = 0.6
         self.heading = 0
-        self.rate = rospy.Rate(4)
+        self.rate = rospy.Rate(7)
         self.goalIndex = 0
 
     def get_goal_index(self,msg):

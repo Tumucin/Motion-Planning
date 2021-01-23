@@ -16,7 +16,7 @@ class setVelClass(object):
         self.x = 0
         self.pyval = 0
 
-        rospy.Subscriber('angular_velocity',AngularVelocity,self.get_angular_vel,queue_size=10)
+        rospy.Subscriber('angular_velocity',AngularVelocity,self.get_angular_vel,queue_size=1)
         rospy.Subscriber('TransGoalStatesTopic',TransformedGoalStates,self.get_trans_goal_states,queue_size=1)
         self.transformed_goal_state = TransformedGoalStates()
 
@@ -55,7 +55,8 @@ class setVelClass(object):
         print("constant in get_angular_vel",constant)
         
         if  constant > 0.01:
-            self.long_vel = self.long_vel-0.1
+            #self.long_vel = self.long_vel-0.05
+            self.long_vel = 0.25
             if self.long_vel < 0.19:
                 self.long_vel = 0.2
         else:

@@ -26,7 +26,7 @@ class FindCoeffClass(object):
         self.wheelVel = 0
         self.controlGain = 1.5
         self.totalSteering = 0
-        self.waypoints = LocalWaypoints()
+        self.waypoints = GlobWaypoints()
         self.crosstrackerr= CrossTrackError()
 
         self.rate = rospy.Rate(200)
@@ -34,7 +34,7 @@ class FindCoeffClass(object):
         rospy.Subscriber('odom',Odometry,self.get_states,queue_size=1)
 
 
-        rospy.Subscriber('LocalWaypoints',LocalWaypoints, self.get_ref_path,queue_size=1)
+        rospy.Subscriber('GlobalPath',GlobWaypoints, self.get_ref_path,queue_size=1)
 
         rospy.Subscriber('cmd_vel',Twist,self.get_long_vel,queue_size=1)
 
@@ -58,18 +58,19 @@ class FindCoeffClass(object):
         
         #self.rate.sleep()
     def main(self):
-        data = None
-        while data is None:
-            try:
-                data = rospy.wait_for_message('LocalWaypoints',LocalWaypoints)
-            except:
-                pass
+        pass
+        #data = None
+        #while data is None:
+         #   try:
+          #      data = rospy.wait_for_message('GlobalPath',GlobWaypoints)
+           # except:
+            #    pass
 
         #while not rospy.is_shutdown():
-        self.angularVel.LineHeadingError,self.angularVel.headingErr,self.angularVel.angularVelocity = self.calculate_angular_velocity(self.waypoints)
-        self.pub.publish(self.angularVel)
-        print("Time:",rospy.get_time())
-        self.rate.sleep()
+            #self.angularVel.LineHeadingError,self.angularVel.headingErr,self.angularVel.angularVelocity = self.calculate_angular_velocity(self.waypoints)
+            #self.pub.publish(self.angularVel)
+            #print("Time in main:",rospy.get_time())
+            #self.rate.sleep()
 
     def get_long_vel(self,msg):
         self.longVel = msg.linear.x
@@ -104,8 +105,8 @@ class FindCoeffClass(object):
         for i in range(len(self.distance)):
             self.distance[i] = float('inf')
 
-        for i in range(len(waypoints.localwaypointsx)):
-            d = math.sqrt((CurrWheelX-waypoints.localwaypointsx[i])**2+(CurrWheelY-waypoints.localwaypointsy[i])**2)
+        for i in range(len(waypoints.globwaypointsx)):
+            d = math.sqrt((CurrWheelX-waypoints.globwaypointsx[i])**2+(CurrWheelY-waypoints.globwaypointsy[i])**2)
             #print("d:",d)
             self.distance[i] = d
 
@@ -117,28 +118,28 @@ class FindCoeffClass(object):
         if index<2:
             index = 2
 
-        if len(waypoints.localwaypointsx)==0:
+        if len(waypoints.globwaypointsx)==0:
             slope = 0
             a = 0
             n = 0
             c =0
         else:
             try:
-                slope = ((waypoints.localwaypointsy[index])-(waypoints.localwaypointsy[index-1]))/((waypoints.localwaypointsx[index])-(waypoints.localwaypointsx[index-1]))
+                slope = ((waypoints.globwaypointsy[index])-(waypoints.globwaypointsy[index-1]))/((waypoints.globwaypointsx[index])-(waypoints.globwaypointsx[index-1]))
             except ZeroDivisionError:
                 slope = float("inf")
             
             a = -slope
-            n = waypoints.localwaypointsy[index]-(slope)*(waypoints.localwaypointsx[index])
+            n = waypoints.globwaypointsy[index]-(slope)*(waypoints.globwaypointsx[index])
             c = -n
             
         ######################### CALCULATE TOTAL STEERING ##########################
         convert_Theta=math.atan(math.tan(self.theta))
 
-        if index == len(waypoints.localwaypointsy)-1:
+        if index == len(waypoints.globwaypointsy)-1:
             index = index-1
-        delta_y=waypoints.localwaypointsy[index+1]-waypoints.localwaypointsy[index]
-        delta_x=waypoints.localwaypointsx[index+1]-waypoints.localwaypointsx[index]
+        delta_y=waypoints.globwaypointsy[index+1]-waypoints.globwaypointsy[index]
+        delta_x=waypoints.globwaypointsx[index+1]-waypoints.globwaypointsx[index]
         try:
             constant=(delta_y)/(delta_x)
         except ZeroDivisionError:
@@ -163,17 +164,17 @@ class FindCoeffClass(object):
 
         e = abs(((a)*(self.x)+(self.y)+(c))/(math.sqrt((a)*(a)+1)))
         if math.isnan(e) or math.isinf(e):
-            e=waypoints.localwaypointsx[index]-self.x
+            e=waypoints.globwaypointsx[index]-self.x
 
         if abs(e) < 0.0001:
             e=0
 
         Test = (a)*(self.x)+(self.y)+(c)
-        Test2=waypoints.localwaypointsx[index]-self.x
+        Test2=waypoints.globwaypointsx[index]-self.x
        
         print("Test2 in stanley:",Test2)
         print("deriv_y in stanley:",deriv_y)
-        Test3=waypoints.localwaypointsy[index]-self.y
+        Test3=waypoints.globwaypointsy[index]-self.y
         
         if math.isnan(Test) or math.isinf(Test):
             Test=Test2
@@ -263,13 +264,13 @@ class FindCoeffClass(object):
 
 
     def get_ref_path(self,msg):
-        self.waypoints.localwaypointsx = msg.localwaypointsx
-        self.waypoints.localwaypointsy = msg.localwaypointsy
+        self.waypoints.globwaypointsx = msg.globwaypointsx
+        self.waypoints.globwaypointsy = msg.globwaypointsy
 
         
 
     def loop(self):
-        self.main()
+        #self.main()
         rospy.spin()
 
 
