@@ -11,10 +11,10 @@ from nav_msgs.msg import Odometry
 class GlobalPath(object):
     
     def __init__(self):
-        self.xpoints = [0.25 ,9 ,9.553 ,9.75 ,9.75 ,9.54 ,9 ,1 ,0.4598 ,0.25 ,0.25]
-        self.ypoints = [0.25 ,0.25 ,0.4935 ,1 ,9 ,9.52 ,9.75 ,9.75 ,9.52 ,9 ,0.25]
-        #self.xpoints = [0.25 ,9 ,9.75 ,9.75 ,9 ,1 ,0.25 ,0.25]
-        #self.ypoints = [0.25 ,0.25 ,1 ,9 ,9.75 ,9.75 ,9 ,0.25]
+        #self.xpoints = [0.25 ,9 ,9.553 ,9.75 ,9.75 ,9.54 ,9 ,1 ,0.4598 ,0.25 ,0.25]
+        #self.ypoints = [0.25 ,0.25 ,0.4935 ,1 ,9 ,9.52 ,9.75 ,9.75 ,9.52 ,9 ,0.25]
+        self.xpoints = [0.25 ,9 ,9.75 ,9.75 ,9 ,1 ,0.25 ,0.25]
+        self.ypoints = [0.25 ,0.25 ,1 ,9 ,9.75 ,9.75 ,9 ,0.25]
         #self.xpoints = [0.25 ,9 ,9.75 ,9.75 ,9 ,6 ,5.75 ,5.75]
         #self.ypoints = [0.25 ,0.25 ,1 ,3 ,3.75 ,3.75 ,4.25 ,9]
         self.numOfWaypoints = 100
@@ -43,8 +43,7 @@ class GlobalPath(object):
         """
         WaypointsX = np.zeros(((numOfWaypoints)*(len(xpoints)-1)))
         WaypointsY = np.zeros(((numOfWaypoints)*(len(xpoints)-1)))
-
-        for i in range(len(xpoints)-1):
+        for i in range(len(xpoints)-3):
             x = np.linspace(xpoints[i],xpoints[i+1],numOfWaypoints)
             try:
                 slope = ((ypoints[i+1])-(ypoints[i]))/((xpoints[i+1])-(xpoints[i]))
@@ -56,6 +55,30 @@ class GlobalPath(object):
             WaypointsX[((numOfWaypoints)*(i)):((numOfWaypoints)*(i+1))]=x
             WaypointsY[((numOfWaypoints)*(i)):((numOfWaypoints)*(i+1))]=y
 
+        # theta goes from 0 to 2pi
+        theta = np.linspace((1.5)*np.pi, (2)*np.pi, 100)
+
+        # the radius of the circle
+        r = np.sqrt((0.75)*(0.75))
+
+        # compute x1 and x2
+        x1 = r*np.cos(theta) + 9
+        x2 = r*np.sin(theta) + 1
+        #plt.plot(x1,x2)
+        WaypointsX[100:200] = x1
+        WaypointsY[100:200] = x2
+        
+        i=2
+        x = np.linspace(xpoints[i],xpoints[i+1],numOfWaypoints)
+        try:
+            slope = ((ypoints[i+1])-(ypoints[i]))/((xpoints[i+1])-(xpoints[i]))
+            coefficient = (ypoints[i])-(slope)*(xpoints[i])
+            y = (slope)*x+coefficient
+        except ZeroDivisionError:
+            x = np.linspace(xpoints[i],xpoints[i],numOfWaypoints)
+            y = np.linspace(ypoints[i],ypoints[i+1],numOfWaypoints)
+        WaypointsX[((numOfWaypoints)*(i)):((numOfWaypoints)*(i+1))]=x
+        WaypointsY[((numOfWaypoints)*(i)):((numOfWaypoints)*(i+1))]=y
         return WaypointsX, WaypointsY
 
     def loop(self):
